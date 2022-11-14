@@ -7,10 +7,6 @@
 
 #include <sstream>
 
-/*
- * Здесь можно разместить код наполнения транспортного справочника данными из JSON,
- * а также код обработки запросов к базе и формирование массива ответов в формате JSON
- */
 namespace reader 
 {
 	namespace detail 
@@ -33,7 +29,7 @@ namespace reader
 			int distance{ 0 };
 		};
 
-		struct RouteSet {/*********************************/
+		struct RouteSet {
 			double velocity;
 			int waitTime;
 		};
@@ -43,7 +39,7 @@ namespace reader
 	using ResponseAddTowardStop = std::deque<std::unordered_map<std::string, std::vector<detail::Distance>>>;
 	using ResponseData = std::tuple<std::deque<detail::Query>,
 		std::deque<std::unordered_map<std::string, std::vector<detail::Distance>>>,
-		std::deque<detail::Query>, detail::RouteSet>;
+		std::deque<detail::Query>, detail::RouteSet, std::string>;
 	using ResponseRoute = std::tuple<std::vector<std::string>, bool>;
 	using Stat = handler::BusStat;
 	using Buses = handler::BusPtr;

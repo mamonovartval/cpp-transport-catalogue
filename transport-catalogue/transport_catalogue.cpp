@@ -24,7 +24,6 @@ namespace tc
 			bus.endStop = orderStops.back();
 			//resize vector of stops for reverse route
 			std::vector<std::string> tempVec = orderStops;
-			//tempVec.resize(orderStops.size() - 1);
 			// put data in reverse direction except end vector of stops
 			for (auto it = (orderStops.rbegin() + 1); it != orderStops.rend(); it++) {
 				tempVec.push_back(*it);
@@ -53,6 +52,43 @@ namespace tc
 			std::unordered_set<std::string_view> uniqueNames(orderStops.begin(), orderStops.end());
 			bus.numUniqueStops = uniqueNames.size();
 		}
+
+		// calculate length of route
+		bus.lengthRoute = ComputeLengthRoute(bus);
+
+		// calculate curvature of route
+		bus.curvature = ComputeCurvature(bus);
+
+		// put data to buses_
+		buses_.push_back(std::move(bus));
+		// put data to hash container
+		busname_to_bus_[nameBus] = (std::move(&buses_.back()));
+
+		// add number of buses on each stop
+		auto it_bus = busname_to_bus_.find(nameBus);
+		for (auto& ptr_stop : it_bus->second->ptr_ToStops) {
+			if (!stopname_to_buses_.count(ptr_stop)) {
+				continue;
+			}
+			stopname_to_buses_[ptr_stop].insert(it_bus->second->nameBus);
+		}
+	}
+
+	void TransportCatalogue::AddBus(const std::string& nameBus, const std::vector<std::string>& routeStops, const bool typeRoute)
+	{
+		domain::Bus bus(nameBus, typeRoute);
+		// add all ptr to stops for bus
+		bus.ptr_ToStops.reserve(routeStops.size());
+		for (const std::string_view nameStop : routeStops) {
+			auto it_stop = stopname_to_stop_.find(nameStop);
+			bus.ptr_ToStops.push_back(it_stop->second);
+		}
+		// assign number of stops
+		bus.numStops = routeStops.size();
+		// assign number of unique stops
+		std::unordered_set<std::string_view> uniqueNames(routeStops.begin(), routeStops.end());
+		bus.numUniqueStops = uniqueNames.size();
+
 
 		// calculate length of route
 		bus.lengthRoute = ComputeLengthRoute(bus);
@@ -120,7 +156,7 @@ namespace tc
 		return &stopname_to_buses_.at(stop);
 	}
 
-	std::vector<domain::Stop> TransportCatalogue::GetStops() const
+	std::vector<domain::Stop> TransportCatalogue::GetSortedStops() const
 	{
 		if (stopname_to_stop_.empty()) {
 			return {};
@@ -133,6 +169,17 @@ namespace tc
 			}
 			result.push_back(*dataStop);
 		}
+		return result;
+	}
+
+	std::vector<domain::Stop> TransportCatalogue::GetStops() const
+	{
+		std::vector<domain::Stop> result;
+		for (auto& [nameStop, dataStop] : stopname_to_stop_) {
+			
+			result.push_back(*dataStop);
+		}
+
 		return result;
 	}
 
@@ -157,7 +204,17 @@ namespace tc
 			return stops_to_distance_.at(std::make_pair(from, to));
 		}
 		// if in storage no key {from, to} reverse it to {to, from}
-		return stops_to_distance_.at(std::make_pair(to, from));
+		if (stops_to_distance_.count(std::make_pair(to, from))) {
+			return stops_to_distance_.at(std::make_pair(to, from));
+		}
+
+		return 0;
+
+	}
+
+	const StorageStopsToDistance& TransportCatalogue::GetAllDistances() const
+	{
+		return stops_to_distance_;
 	}
 
 	double TransportCatalogue::ComputeLengthRoute(const domain::Bus bus)

@@ -12,9 +12,9 @@ namespace graph {
 	   	  	
 	/********************************TransportGraph*****************************/
 	TransportGraph::TransportGraph(const tc::TransportCatalogue & db, double velocity, int waitTime)
-		:graph_(db.GetStops().size() * 2)
+		:graph_(db.GetSortedStops().size() * 2)
 	{
-		SetVertex(waitTime, db.GetStops());
+		SetVertex(waitTime, db.GetSortedStops());
 		SetEdge(velocity, db);
 	}
 
@@ -28,11 +28,18 @@ namespace graph {
 		return stopIds_;
 	}
 
+	void TransportGraph::SetGraph(graph::DirectedWeightedGraph<double>&& graph)
+	{
+		graph_ = std::move(graph);
+	}
+
+	void TransportGraph::SetStopIds(StopNameToVertexId&& stop_ids)
+	{
+		stopIds_ = std::move(stop_ids);
+	}
+
 	void TransportGraph::SetVertex(int waitTime, const std::vector<domain::Stop>& stops)
 	{
-		// get actual stops from tc
-		//const auto& stops = db_.GetStops();
-
 		graph::VertexId counterVertex{ 0 };
 		std::size_t span_count{ 0 };
 		// fill vertex with wating time to graph
@@ -85,9 +92,6 @@ namespace graph {
 				}
 			}
 		}
-
-		// init router
-		//ptrRoute_ = std::make_unique<graph::Router<double>>(graph_);
 	}
 	
 	TransportRouter::TransportRouter(const TransportGraph& makedGraph)

@@ -11,6 +11,7 @@ namespace handler
 	RequestHandler::RequestHandler(const tc::TransportCatalogue & db,
 		const renderer::MapRenderer & renderer,
 		const graph::TransportRouter& tr)	:db_(db), renderer_(renderer), rdb_(tr) {}
+	
 	/*************************************/
 
 	std::optional<BusStat> RequestHandler::GetBusStat(const std::string_view & bus_name) const

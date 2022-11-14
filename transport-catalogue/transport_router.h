@@ -16,14 +16,16 @@ namespace graph {
 
 	class TransportGraph {
 	public:
+		TransportGraph() = default;
 		TransportGraph(const tc::TransportCatalogue & db, double velocity, int waitTime);
 
 		const graph::DirectedWeightedGraph<double>& GetGraph() const;
 		const StopNameToVertexId& GetStopIds() const;
-		//const std::unique_ptr<graph::Router<double>>& GetPtrRoute() const;
+		void SetGraph(graph::DirectedWeightedGraph<double>&& graph);
+		void SetStopIds(StopNameToVertexId&& stop_ids);
+		
 	private:
 		graph::DirectedWeightedGraph<double> graph_;
-		//std::unique_ptr<graph::Router<double>> ptrRoute_;
 		StopNameToVertexId stopIds_;
 
 		// set vertex into graph

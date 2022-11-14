@@ -13,10 +13,7 @@
 #include <string_view>
 #include <unordered_map>
 #include <optional>
-/*
- * Здесь можно разместить код наполнения транспортного справочника данными из JSON,
- * а также код обработки запросов к базе и формирование массива ответов в формате JSON
- */
+
 namespace reader
 {
 	/*constants*/
@@ -25,6 +22,7 @@ namespace reader
 	static const std::string rendSet{ "render_settings"s };
 	static const std::string statReq{ "stat_requests"s };
 	static const std::string routeSet{ "routing_settings"s };
+	static const std::string serialSet{ "serialization_settings"s };
 	static const std::string type{ "type"s };
 	static const std::string name{ "name"s };
 	static const std::string stops{ "stops"s };
@@ -90,7 +88,7 @@ namespace reader
 
 		json::Array arr_data = input.AsArray();
 
-		int reqNum = arr_data.size();
+		size_t reqNum = arr_data.size();
 		// divide data to query for add to base into to query for stops and buses
 		for (int i = 0; i < reqNum; ++i) {
 			detail::Query result;
@@ -162,7 +160,7 @@ namespace reader
 
 		json::Array arr_data = input.AsArray();
 
-		int reqNum = arr_data.size();
+		size_t reqNum = arr_data.size();
 		// divide data to query for add to base into to query for stops and buses
 		for (int i = 0; i < reqNum; ++i) {
 			detail::Query result;
@@ -201,7 +199,7 @@ namespace reader
 
 		json::Array arr_data = input.AsArray();
 
-		int reqNum = arr_data.size();
+		size_t reqNum = arr_data.size();
 		// collect data for query of request to base
 		for (int i = 0; i < reqNum; ++i) {
 			detail::Query result;
@@ -403,11 +401,12 @@ namespace reader
 		std::deque<std::unordered_map<std::string, std::vector<detail::Distance>>> queryTowardStop;
 		std::deque<detail::Query> queriesToBase;
 		detail::RouteSet routeSettings;
+		std::string nameBase;
 
 		const json::Node root = LoadJSON(input).GetRoot();
 
 		if (root.IsDict() && root.AsDict().empty()) {
-			return { queriesToAdd, queryTowardStop, queriesToBase, routeSettings };
+			return { queriesToAdd, queryTowardStop, queriesToBase, routeSettings, nameBase };
 		}
 
 		json::Dict queries = root.AsDict();
@@ -442,12 +441,19 @@ namespace reader
 				}
 				routeSettings = ReadRoutingQuery(query.second.AsDict());
 			}
+			else if(query.first == serialSet) {
+				/**********Read settings serialization******/
+				if (query.second.IsDict() && query.second.AsDict().empty()) {
+					continue;
+				}
+				nameBase = query.second.AsDict().at("file").AsString();
+			}
 			else {
 				json::ParsingError("Input data is wrong"s);
 			}
 		}
 
-		return { queriesToAdd, queryTowardStop, queriesToBase, routeSettings };
+		return { queriesToAdd, queryTowardStop, queriesToBase, routeSettings, nameBase };
 	}
 
 	json::Document JsonReader::LoadJSON(std::istream & s)
@@ -491,7 +497,7 @@ namespace reader
 		}
 		output << "\n]";
 	}
-
+	
 	void JsonReader::PrintData(std::ostream& output, const std::optional<Stat>& data, const int id_req)
 	{
 		if (!(data.has_value())) {
@@ -614,7 +620,7 @@ namespace reader
 			output << PrintJSON(dict_node);
 			return;
 		}
-
+	
 		const auto& graph = reqHandler.GetRouter().GetMakedGraph().GetGraph();
 		
 		json::Node dict_node = json::Builder{}

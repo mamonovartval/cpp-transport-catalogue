@@ -20,8 +20,6 @@ namespace tc
 		std::hash<const void*> ptr_hasher;
 	};
 
-	//using ResponseInfo = std::tuple<std::string_view, std::unordered_set<std::string_view>>;
-	//using ResponseRoute = std::tuple<int, int, double, double>;
 	using StorageBusNameToBus = std::unordered_map<std::string_view, const domain::Bus*>;
 	using StorageStopNameToStop = std::unordered_map<std::string_view, const domain::Stop*>;
 	using StorageStopNameToBuses = std::unordered_map<const domain::Stop*, std::unordered_set<std::string_view>>;
@@ -32,6 +30,8 @@ namespace tc
 	public:
 		void AddRouteToBase(const std::string& nameBus,
 			const std::vector<std::string>& orderStops, const bool typeRoute);
+		void AddBus(const std::string& nameBus,
+			const std::vector<std::string>& routeStops, const bool typeRoute);
 		void AddStopToBase(const std::string & nameStop,
 			const double& lat, const double& lon);
 		void SetDistanceBetweenStops(const std::pair<const domain::Stop*, const domain::Stop*>
@@ -40,9 +40,12 @@ namespace tc
 		const domain::Bus* SearchRoute(const std::string_view& nameBus) const;
 		const domain::Stop* SearchStop(const std::string_view& nameStop) const;
 		const std::unordered_set<std::string_view>* GetStopToBuses(const std::string_view& nameStop) const;
+		std::vector<domain::Stop> GetSortedStops() const;
 		std::vector<domain::Stop> GetStops() const;
 		unsigned int GetDistanceBetweenStops(const domain::Stop* from, const domain::Stop* to) const;
+		const StorageStopsToDistance& GetAllDistances() const;
 		const std::map< std::string_view, const domain::Bus*> GetSortedBuses() const;
+
 
 	private:
 		std::deque<domain::Bus> buses_;

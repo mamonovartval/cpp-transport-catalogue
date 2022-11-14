@@ -26,7 +26,7 @@ namespace handler {
 	public:
 		RequestHandler(const tc::TransportCatalogue& db, const renderer::MapRenderer& renderer,
 			const graph::TransportRouter& tr);
-
+				
 		// Возвращает информацию о маршруте (запрос Bus)
 		std::optional<BusStat> GetBusStat(const std::string_view& bus_name) const;
 
